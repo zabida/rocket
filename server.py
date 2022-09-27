@@ -1,12 +1,14 @@
 import socket
 import sys
-from threading import Thread
+from threading import Thread, local
 from typing import List, Tuple
 
 from frame.app import application
 
 
 # "200 OK  [('Content-Type', 'text/html;')]"
+
+local = local()
 
 
 class Server(object):
@@ -18,7 +20,8 @@ class Server(object):
         self.sock.listen(1024)
 
     def start_response(self, code, headers: List[Tuple[str]]):
-        pass
+        base_header = [("Server", "dev-server")]
+        local.header = "HTTP/1.1 {}".format(code)
 
     def parse(self, req: str):
         pass
@@ -40,14 +43,14 @@ class Server(object):
         sock.send(res.encode("utf-8"))
         sock.close()
 
-    def run(self):
+    def run(self, port):
 
         while True:
             new_sock, ip_addr = self.sock.accept()
             t = Thread(target=self.deal, args=(new_sock, ip_addr))
             t.setDaemon(True)
             t.start()
-        self.sock.close()
+        sock.close()
 
 
 if __name__ == '__main__':
