@@ -12,6 +12,10 @@ from frame.app import application
 class Server(object):
     def __init__(self, port=9090):
         self.port = port
+        self.sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, True)
+        self.sock.bind(("", port))
+        self.sock.listen(1024)
 
     def start_response(self, code, headers: List[Tuple[str]]):
         pass
@@ -36,17 +40,14 @@ class Server(object):
         sock.send(res.encode("utf-8"))
         sock.close()
 
-    def run(self, port):
-        sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, True)
-        sock.bind(("", port))
-        sock.listen(1024)
+    def run(self):
+
         while True:
-            new_sock, ip_addr = sock.accept()
+            new_sock, ip_addr = self.sock.accept()
             t = Thread(target=self.deal, args=(new_sock, ip_addr))
             t.setDaemon(True)
             t.start()
-        sock.close()
+        self.sock.close()
 
 
 if __name__ == '__main__':
